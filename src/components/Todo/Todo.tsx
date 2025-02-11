@@ -1,20 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import useFetch from '../../hooks/useFetch';
+import Loading from '../common/Loading';
 
-function Todo () {
+interface Quest {
+  text: string;
+  completed: boolean;
+}
 
-  const [quests, setQuests] = useState([]);
-  const [input, setInput] = useState('');
-  const [reward, setReward] = useState(null);
+function Todo<T>() {
+  const [quests, setQuests] = useState<Quest[]>([]);
+  const [todoInput, setTodoInput] = useState<string>('');
+  const [reward, setReward] = useState<{xp: number; gold: number} | null>(null);
+  const { fetchData, loading, fetchError, refetch } = useFetch<Quest[]>('/api/todos');
+  
+  
+  //초기 데이터 세팅
+  useEffect(()=>{
+    if(fetchData !== null && fetchData.length > 0 && quests.length === 0){
+      setQuests(fetchData);
+    }
+  },[fetchData,quests.length])
 
   const handleAddQuest = () => {
-    if (input.trim() !== '') {
-      setQuests([...quests, { text: input, completed: false }]);
-      setInput('');
+    if (todoInput.trim()) {
+      setQuests([...quests, { text: todoInput, completed: false }]);
+      
+
+      setTodoInput('');
     }
   };
 
-  const handleCompleteQuest = (index) => {
+  const handleCompleteQuest = (index : number) => {
+    
     const newQuests = [...quests];
     newQuests[index].completed = true;
     setQuests(newQuests);
@@ -34,8 +52,8 @@ function Todo () {
       <div className="w-full max-w-md mb-4">
         <input
           type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
+          value={todoInput}
+          onChange={(e) => setTodoInput(e.target.value)}
           className="w-full p-3 rounded-md text-black"
           placeholder="새 퀘스트를 입력하세요..."
         />
@@ -67,8 +85,9 @@ function Todo () {
           </motion.div>
         ))}
       </div>
+      {loading && <Loading loadingState={loading} ></Loading>}
 
-      {reward && (
+      {reward && !loading && (
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
