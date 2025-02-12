@@ -4,28 +4,33 @@ import useFetch from '../../hooks/useFetch';
 import Loading from '../common/Loading';
 
 interface Quest {
-  text: string;
+  id : number,
+  detail: string,
   completed: boolean;
 }
 
 function Todo<T>() {
-  const [quests, setQuests] = useState<Quest[]>([]);
+  const [todoList, setTodoList] = useState<Quest[]>([]);
   const [todoInput, setTodoInput] = useState<string>('');
   const [reward, setReward] = useState<{xp: number; gold: number} | null>(null);
-  const { fetchData, loading, fetchError, refetch } = useFetch<Quest[]>('/api/todos');
+  const {fetchData, loading, fetchError, refetch} = useFetch<Quest[]>('/api/todos');
   
   
   //초기 데이터 세팅
   useEffect(()=>{
-    if(fetchData !== null && fetchData.length > 0 && quests.length === 0){
-      setQuests(fetchData);
+    if(fetchData !== null && fetchData.length > 0 && todoList.length === 0){
+      setTodoList(fetchData);
     }
-  },[fetchData,quests.length])
+  },[fetchData,todoList.length])
 
   const handleAddQuest = () => {
     if (todoInput.trim()) {
-      setQuests([...quests, { text: todoInput, completed: false }]);
+
+      useFetch("","POST",{})
+
+      setTodoList([...todoList, { id:0 ,detail: todoInput, completed: false }]);
       
+      //ajax 데이터 후 refetch
 
       setTodoInput('');
     }
@@ -33,9 +38,9 @@ function Todo<T>() {
 
   const handleCompleteQuest = (index : number) => {
     
-    const newQuests = [...quests];
-    newQuests[index].completed = true;
-    setQuests(newQuests);
+    const newTodoList = [...todoList];
+    newTodoList[index].completed = true;
+    setTodoList(newTodoList);
     
     // 보상 계산 로직 (간단한 랜덤 스탯)
     setReward({
@@ -66,15 +71,15 @@ function Todo<T>() {
       </div>
 
       <div className="w-full max-w-md space-y-3">
-        {quests.map((quest, index) => (
+        {todoList.map((todo, index) => (
           <motion.div
             key={index}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`p-4 rounded-lg border ${quest.completed ? 'border-yellow-400 bg-yellow-800' : 'border-gray-500 bg-gray-700'}`}
+            className={`p-4 rounded-lg border ${todo.completed ? 'border-yellow-400 bg-yellow-800' : 'border-gray-500 bg-gray-700'}`}
           >
-            <p className="text-lg">{quest.text}</p>
-            {!quest.completed && (
+            <p className="text-lg">{todo.text}</p>
+            {!todo.completed && (
               <button
                 onClick={() => handleCompleteQuest(index)}
                 className="mt-2 bg-blue-500 hover:bg-blue-600 p-2 rounded-md"
